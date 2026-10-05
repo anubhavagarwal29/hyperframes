@@ -8,6 +8,7 @@ import { observeGsapGesture } from "./gsapGestureOutcome";
 import { editsPlainCss } from "./gsapRuntimeKeyframes";
 import { refuseGsapTakeover } from "./elementOffsetStager";
 import { tryGsapDragIntercept } from "./gsapRuntimeBridge";
+import { freezeDragStamp } from "./draggedGsapPosition";
 import { assertGsapEditPersisted } from "./gsapEditOutcome";
 import { firstPreflightFailure } from "./gsapGroupPreflight";
 
@@ -40,6 +41,9 @@ export function useGsapAwareGroupMove({
       const writes = observeGsapGesture(gsapCommitMutation);
       const writer = writes.commit;
       if (!writer) return { ok: true, changed: false };
+      const stamps = new Map(
+        updates.map((u) => [u.selection, freezeDragStamp(u.selection.element)]),
+      );
       const toastRefusal = options.refusalToast !== false;
       // One coalesce key across slow writes keeps the group drag in one undo entry.
       const coalesceKey = `group-drag:${++groupDragCommitCounter}`;
@@ -144,7 +148,7 @@ export function useGsapAwareGroupMove({
               await flushQueued();
               return makeFetchFallback(selection, { fresh: true })();
             },
-            { preflightPassed: true },
+            { preflightPassed: true, stamp: stamps.get(selection) },
           );
           assertGsapEditPersisted(outcome);
         } catch (error) {

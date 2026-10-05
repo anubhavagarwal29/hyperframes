@@ -154,6 +154,7 @@ export function useGsapAwareEditing({
         return writes.finish(result?.changed === true);
       }
       if (writes.commit) {
+        const stamp = freezeDragStamp(selection.element);
         try {
           const ownedAnimations = getGsapAnimationsForSelection(selection);
           const targetAnimations = Array.isArray(ownedAnimations)
@@ -166,7 +167,7 @@ export function useGsapAwareEditing({
             previewIframeRef.current,
             writes.commit,
             makeFetchFallback(selection),
-            modifiers,
+            { ...modifiers, stamp },
           );
           await saveMove(outcome, async () => {
             const staged = writes.drawKeepingUndone(() =>
@@ -209,12 +210,12 @@ export function useGsapAwareEditing({
       restore: () => void = () => undefined,
       route?: { plainTranslate: boolean },
     ) => {
-      const stamp = freezeDragStamp(selection.element);
       const writes = observeGsapGesture(gsapCommitMutation);
       if (route?.plainTranslate ?? editsPlainCss(selection.element, "resize")) {
         const result = await handleDomBoxSizeCommit(selection, next, offset, restore);
         return writes.finish(result?.changed === true);
       }
+      const stamp = freezeDragStamp(selection.element);
       let targetAnimations: GsapAnimation[];
       try {
         const ownedAnimations = getGsapAnimationsForSelection(selection);
@@ -373,6 +374,7 @@ export function useGsapAwareEditing({
         return writes.finish(result?.changed === true);
       }
       if (writes.commit) {
+        const stamp = freezeDragStamp(selection.element);
         try {
           const targetAnimations = await getGsapAnimationsForSelection(selection);
           // A keyframe or a tl.set; a computed source rejects, so the gesture restores its draft.
@@ -383,6 +385,7 @@ export function useGsapAwareEditing({
             previewIframeRef.current,
             writes.commit,
             makeFetchFallback(selection),
+            stamp,
           );
           assertGsapEditPersisted(outcome);
           return writes.finish();
