@@ -348,6 +348,7 @@ export interface StudioServerOptions {
   browserGpuMode?: BrowserGpuMode;
   /** Where project histories are kept; defaults to ~/.cache/hyperframes/history. */
   historyRoot?: string;
+  relayToken?: string;
 }
 
 export interface StudioServer {
@@ -974,7 +975,7 @@ export function createStudioServer(options: StudioServerOptions): StudioServer {
     });
   });
 
-  mountDesktopRoutes(app, projectDir);
+  mountDesktopRoutes(app, projectDir, { relayToken: options.relayToken });
 
   // ── Pre-flight checks for render ────────────────────────────────────────
   // Intercept render requests before they reach the shared API so we can

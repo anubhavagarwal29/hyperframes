@@ -130,6 +130,7 @@ const commandLoaders = {
     assertStudioWorkspaceBuilt().then(() => import("./commands/preview.js").then((m) => m.default)),
   publish: () => import("./commands/publish.js").then((m) => m.default),
   open: () => import("./commands/open.js").then((m) => m.default),
+  "app-tools": () => import("./commands/app-tools.js").then((m) => m.default),
   render: () => import("./commands/render.js").then((m) => m.default),
   lint: () => import("./commands/lint.js").then((m) => m.default),
   check: () => import("./commands/check.js").then((m) => m.default),
@@ -240,6 +241,18 @@ if (
     mod.trackCommand(command, runId);
     if (mod.shouldTrack()) mod.incrementCommandCount();
   });
+}
+
+// A resumed Claude Code session has a new inbox: a command run in a linked project points the desktop app at it.
+if (!isHelp && command !== "unknown") {
+  void import("./utils/agentLink.js")
+    .then(({ refreshAgentLinks }) =>
+      refreshAgentLinks([
+        process.cwd(),
+        ...process.argv.slice(3).filter((a) => !a.startsWith("-")),
+      ]),
+    )
+    .catch(() => {});
 }
 
 // `events` skips the update check too — a skill-usage beacon must not add

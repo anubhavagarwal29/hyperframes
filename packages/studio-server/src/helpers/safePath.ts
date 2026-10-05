@@ -25,6 +25,18 @@ export function realFilePath(filePath: string): string {
   }
 }
 
+// App state and the desktop link's tokens (cli agentLink.ts): no route serves it; Studio still edits the motion file.
+const STUDIO_STATE_FILES = new Set([".hyperframes/studio-motion.json"]);
+
+export function isPrivateProjectFile(projectDir: string, filePath: string): boolean {
+  const rel = (from: string, to: string) => relative(from, to).split(sep).join("/").toLowerCase();
+  return [rel(projectDir, filePath), rel(realFilePath(projectDir), realFilePath(filePath))].some(
+    (path) =>
+      (path === ".hyperframes" || path.startsWith(".hyperframes/")) &&
+      !STUDIO_STATE_FILES.has(path),
+  );
+}
+
 /**
  * `resolveWithinProject` with every link inside the project resolved now, so a write to the result lands on the
  * file checked here even if a link on the way is retargeted before the write.
